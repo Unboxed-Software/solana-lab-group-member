@@ -4,7 +4,6 @@ import dotenv from 'dotenv'
 import {createGroup} from './create-group'
 import {TokenMetadata} from '@solana/spl-token-metadata'
 import {uploadOffChainMetadata} from './helpers'
-import {createMember} from './create-member'
 dotenv.config()
 
 const CLUSTER: Cluster = 'devnet'
@@ -60,79 +59,6 @@ const signature = await createGroup(
 
 console.log(`Created collection mint with metadata. Signature: ${signature}`)
 
-const membersMetadata = [
-	{
-		imagePath: 'src/assets/1.jpeg',
-		tokenName: 'Cat 1',
-		tokenDescription: 'Two cool cats',
-		tokenSymbol: 'MEOW',
-		tokenExternalUrl: 'https://solana.com/',
-		tokenAdditionalMetadata: {
-			species: 'Cat',
-			breed: 'Cool',
-		},
-		tokenUri: '',
-		metadataFileName: '1.json',
-	},
-	{
-		imagePath: 'src/assets/2.jpeg',
-		tokenName: 'Cat 2',
-		tokenDescription: 'Sassy cat',
-		tokenSymbol: 'MEOW',
-		tokenExternalUrl: 'https://solana.com/',
-		tokenAdditionalMetadata: {
-			species: 'Cat',
-			breed: 'Cool',
-		},
-		tokenUri: '',
-		metadataFileName: '2.json',
-	},
-	{
-		imagePath: 'src/assets/3.jpeg',
-		tokenName: 'Cat 3',
-		tokenDescription: 'Silly cat',
-		tokenSymbol: 'MEOW',
-		tokenExternalUrl: 'https://solana.com/',
-		tokenAdditionalMetadata: {
-			species: 'Cat',
-			breed: 'Cool',
-		},
-		tokenUri: 'https://solana.com/',
-		metadataFileName: '3.json',
-	},
-]
+// DEFINE MEMBER METADATA
 
-membersMetadata.forEach(async (memberMetadata) => {
-	const memberMintKeypair = Keypair.generate()
-
-	memberMetadata.tokenUri = await uploadOffChainMetadata(
-		memberMetadata,
-		payer
-	)
-
-	const tokenMetadata: TokenMetadata = {
-		name: memberMetadata.tokenName,
-		mint: memberMintKeypair.publicKey,
-		symbol: memberMetadata.tokenSymbol,
-		uri: memberMetadata.tokenUri,
-		updateAuthority: payer.publicKey,
-		additionalMetadata: Object.entries(
-			memberMetadata.tokenAdditionalMetadata || []
-		).map(([trait_type, value]) => [trait_type, value]),
-	}
-
-	const signature = await createMember(
-		connection,
-		payer,
-		memberMintKeypair,
-		decimals,
-		tokenMetadata,
-		collectionMintKeypair.publicKey
-	)
-
-	console.log(
-		'Created member NFT: ',
-		signature,
-		memberMintKeypair.publicKey.toBase58()
-	)
-})
+// UPLOAD MEMBER METADATA AND CREATE MEMBER MINT
