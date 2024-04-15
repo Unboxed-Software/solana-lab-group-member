@@ -9,144 +9,130 @@ dotenv.config()
 
 const CLUSTER: Cluster = 'devnet'
 
-async function main() {
-	/**
-	 * Create a connection and initialize a keypair if one doesn't already exists.
-	 * If a keypair exists, airdrop a sol if needed.
-	 */
-	const connection = new Connection('http://127.0.0.1:8899')
+/**
+ * Create a connection and initialize a keypair if one doesn't already exists.
+ * If a keypair exists, airdrop a sol if needed.
+ */
+const connection = new Connection('http://127.0.0.1:8899')
 
-	const payer = await initializeKeypair(connection)
+const payer = await initializeKeypair(connection)
 
-	console.log(`public key: ${payer.publicKey.toBase58()}`)
+const decimals = 0
+const maxMembers = 3
 
-	const decimals = 0
-	const maxMembers = 3
+const collectionMintKeypair = Keypair.generate()
 
-	const collectionMintKeypair = Keypair.generate()
-	let mint = collectionMintKeypair.publicKey
-	console.log(
-		'\nmint public key: ' +
-			collectionMintKeypair.publicKey.toBase58() +
-			'\n\n'
-	)
+const collectionMetadata = {
+	imagePath: 'collection.jpeg',
+	tokenName: 'cool-cats-collection',
+	tokenDescription: 'Collection of Cool Cat NFTs',
+	tokenSymbol: 'MEOWs',
+	tokenExternalUrl: 'https://solana.com/',
+	tokenAdditionalMetadata: undefined,
+	tokenUri: '',
+	metadataFileName: 'collection.json',
+}
 
-	const collectionMetadata = {
-		imagePath: 'src/assets/collection.jpeg',
-		tokenName: 'cool-cats-collection',
-		tokenDescription: 'Collection of Cool Cat NFTs',
-		tokenSymbol: 'MEOWs',
+collectionMetadata.tokenUri = await uploadOffChainMetadata(
+	collectionMetadata,
+	payer
+)
+
+const collectionTokenMetadata: TokenMetadata = {
+	name: collectionMetadata.tokenName,
+	mint: collectionMintKeypair.publicKey,
+	symbol: collectionMetadata.tokenSymbol,
+	uri: collectionMetadata.tokenUri,
+	updateAuthority: payer.publicKey,
+	additionalMetadata: Object.entries(
+		collectionMetadata.tokenAdditionalMetadata || []
+	).map(([trait_type, value]) => [trait_type, value]),
+}
+
+const signature = await createGroup(
+	connection,
+	payer,
+	collectionMintKeypair,
+	decimals,
+	maxMembers,
+	collectionTokenMetadata
+)
+
+console.log(`Created collection mint with metadata. Signature: ${signature}`)
+
+const membersMetadata = [
+	{
+		imagePath: 'src/assets/1.jpeg',
+		tokenName: 'Cat 1',
+		tokenDescription: 'Two cool cats',
+		tokenSymbol: 'MEOW',
 		tokenExternalUrl: 'https://solana.com/',
-		tokenAdditionalMetadata: undefined,
+		tokenAdditionalMetadata: {
+			species: 'Cat',
+			breed: 'Cool',
+		},
 		tokenUri: '',
-		metadataFileName: 'collection.json',
-	}
+		metadataFileName: '1.json',
+	},
+	{
+		imagePath: 'src/assets/2.jpeg',
+		tokenName: 'Cat 2',
+		tokenDescription: 'Sassy cat',
+		tokenSymbol: 'MEOW',
+		tokenExternalUrl: 'https://solana.com/',
+		tokenAdditionalMetadata: {
+			species: 'Cat',
+			breed: 'Cool',
+		},
+		tokenUri: '',
+		metadataFileName: '2.json',
+	},
+	{
+		imagePath: 'src/assets/3.jpeg',
+		tokenName: 'Cat 3',
+		tokenDescription: 'Silly cat',
+		tokenSymbol: 'MEOW',
+		tokenExternalUrl: 'https://solana.com/',
+		tokenAdditionalMetadata: {
+			species: 'Cat',
+			breed: 'Cool',
+		},
+		tokenUri: 'https://solana.com/',
+		metadataFileName: '3.json',
+	},
+]
 
-	collectionMetadata.tokenUri = await uploadOffChainMetadata(
-		collectionMetadata,
+membersMetadata.forEach(async (memberMetadata) => {
+	const memberMintKeypair = Keypair.generate()
+
+	memberMetadata.tokenUri = await uploadOffChainMetadata(
+		memberMetadata,
 		payer
 	)
 
-	const collectionTokenMetadata: TokenMetadata = {
-		name: collectionMetadata.tokenName,
-		mint: collectionMintKeypair.publicKey,
-		symbol: collectionMetadata.tokenSymbol,
-		uri: collectionMetadata.tokenUri,
+	const tokenMetadata: TokenMetadata = {
+		name: memberMetadata.tokenName,
+		mint: memberMintKeypair.publicKey,
+		symbol: memberMetadata.tokenSymbol,
+		uri: memberMetadata.tokenUri,
 		updateAuthority: payer.publicKey,
 		additionalMetadata: Object.entries(
-			collectionMetadata.tokenAdditionalMetadata || []
+			memberMetadata.tokenAdditionalMetadata || []
 		).map(([trait_type, value]) => [trait_type, value]),
 	}
 
-	const signature = await createGroup(
+	const signature = await createMember(
 		connection,
 		payer,
-		collectionMintKeypair,
+		memberMintKeypair,
 		decimals,
-		maxMembers,
-		collectionTokenMetadata
+		tokenMetadata,
+		collectionMintKeypair.publicKey
 	)
 
 	console.log(
-		`Created collection mint with metadata. Signature: ${signature}`
+		'Created member NFT: ',
+		signature,
+		memberMintKeypair.publicKey.toBase58()
 	)
-
-	const membersMetadata = [
-		{
-			imagePath: 'src/assets/1.jpeg',
-			tokenName: 'Cat 1',
-			tokenDescription: 'Two cool cats',
-			tokenSymbol: 'MEOW',
-			tokenExternalUrl: 'https://solana.com/',
-			tokenAdditionalMetadata: {
-				species: 'Cat',
-				breed: 'Cool',
-			},
-			tokenUri: '',
-			metadataFileName: '1.json',
-		},
-		{
-			imagePath: 'src/assets/2.jpeg',
-			tokenName: 'Cat 2',
-			tokenDescription: 'Sassy cat',
-			tokenSymbol: 'MEOW',
-			tokenExternalUrl: 'https://solana.com/',
-			tokenAdditionalMetadata: {
-				species: 'Cat',
-				breed: 'Cool',
-			},
-			tokenUri: '',
-			metadataFileName: '2.json',
-		},
-		{
-			imagePath: 'src/assets/3.jpeg',
-			tokenName: 'Cat 3',
-			tokenDescription: 'Silly cat',
-			tokenSymbol: 'MEOW',
-			tokenExternalUrl: 'https://solana.com/',
-			tokenAdditionalMetadata: {
-				species: 'Cat',
-				breed: 'Cool',
-			},
-			tokenUri: 'https://solana.com/',
-			metadataFileName: '3.json',
-		},
-	]
-
-	membersMetadata.forEach(async (memberMetadata) => {
-		const memberMintKeypair = Keypair.generate()
-
-		memberMetadata.tokenUri = await uploadOffChainMetadata(
-			memberMetadata,
-			payer
-		)
-
-		const tokenMetadata: TokenMetadata = {
-			name: memberMetadata.tokenName,
-			mint: memberMintKeypair.publicKey,
-			symbol: memberMetadata.tokenSymbol,
-			uri: memberMetadata.tokenUri,
-			updateAuthority: payer.publicKey,
-			additionalMetadata: Object.entries(
-				memberMetadata.tokenAdditionalMetadata || []
-			).map(([trait_type, value]) => [trait_type, value]),
-		}
-
-		const signature = await createMember(
-			connection,
-			payer,
-			memberMintKeypair,
-			decimals,
-			tokenMetadata,
-			collectionMintKeypair.publicKey
-		)
-
-		console.log(
-			'Created member NFT: ',
-			signature,
-			memberMintKeypair.publicKey.toBase58()
-		)
-	})
-}
-
-main()
+})
