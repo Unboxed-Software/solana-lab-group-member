@@ -1,8 +1,8 @@
-import {Connection, Keypair} from '@solana/web3.js'
-import Irys from '@irys/sdk'
-import fs from 'fs'
-import path from 'path'
-import dotenv from 'dotenv'
+import {Connection, Keypair} from "@solana/web3.js"
+import Irys from "@irys/sdk"
+import fs from "fs"
+import path from "path"
+import dotenv from "dotenv"
 dotenv.config()
 
 export interface CreateNFTInputs {
@@ -30,11 +30,11 @@ function formatIrysUrl(id: string) {
 
 const getIrysArweave = async (secretKey: Uint8Array) => {
 	const irys = new Irys({
-		network: 'devnet',
-		token: 'solana',
+		network: "devnet",
+		token: "solana",
 		key: secretKey,
 		config: {
-			providerUrl: 'https://api.devnet.solana.com',
+			providerUrl: "https://api.devnet.solana.com",
 		},
 	})
 	return irys
@@ -72,7 +72,7 @@ export async function uploadOffChainMetadata(
 	const metadataFile = path.join(__dirname, `/assets/${metadataFileName}`)
 
 	fs.writeFileSync(metadataFile, JSON.stringify(metadata, null, 4), {
-		flag: 'w',
+		flag: "w",
 	})
 
 	const metadataUploadReceipt = await irys.uploadFile(metadataFile)

@@ -1,12 +1,12 @@
-import {initializeKeypair, makeKeypairs} from '@solana-developers/helpers'
-import {Cluster, Connection, clusterApiUrl} from '@solana/web3.js'
-import dotenv from 'dotenv'
-import {createGroup} from './create-group'
-import {TokenMetadata} from '@solana/spl-token-metadata'
-import {uploadOffChainMetadata} from './helpers'
+import {initializeKeypair, makeKeypairs} from "@solana-developers/helpers"
+import {Cluster, Connection, clusterApiUrl} from "@solana/web3.js"
+import dotenv from "dotenv"
+import {createGroup} from "./create-group"
+import {TokenMetadata} from "@solana/spl-token-metadata"
+import {uploadOffChainMetadata} from "./helpers"
 dotenv.config()
 
-const CLUSTER: Cluster = 'devnet'
+const CLUSTER: Cluster = "devnet"
 
 /**
  * Create a connection and initialize a keypair if one doesn't already exists.
@@ -15,7 +15,7 @@ const CLUSTER: Cluster = 'devnet'
 const connection = new Connection(clusterApiUrl(CLUSTER))
 
 const payer = await initializeKeypair(connection, {
-	keypairPath: 'path-to-solana-keypair',
+	keypairPath: "path-to-solana-keypair",
 })
 
 const decimals = 0
@@ -24,14 +24,14 @@ const maxMembers = 3
 const [collectionMintKeypair] = makeKeypairs(1)
 
 const collectionMetadata = {
-	imagePath: 'src/assets/collection.jpeg',
-	tokenName: 'cool-cats-collection',
-	tokenDescription: 'Collection of Cool Cat NFTs',
-	tokenSymbol: 'MEOWs',
-	tokenExternalUrl: 'https://solana.com/',
+	imagePath: "src/assets/collection.jpeg",
+	tokenName: "cool-cats-collection",
+	tokenDescription: "Collection of Cool Cat NFTs",
+	tokenSymbol: "MEOWs",
+	tokenExternalUrl: "https://solana.com/",
 	tokenAdditionalMetadata: undefined,
-	tokenUri: '',
-	metadataFileName: 'collection.json',
+	tokenUri: "",
+	metadataFileName: "collection.json",
 }
 
 collectionMetadata.tokenUri = await uploadOffChainMetadata(
