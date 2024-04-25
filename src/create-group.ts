@@ -25,7 +25,7 @@ import {
 	pack,
 } from "@solana/spl-token-metadata"
 
-export async function createGroup(
+export async function createTokenExtensionMintWithGroupPointer(
 	connection: Connection,
 	payer: Keypair,
 	mintKeypair: Keypair,
