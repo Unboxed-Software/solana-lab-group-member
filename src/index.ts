@@ -1,5 +1,5 @@
-import {initializeKeypair} from '@solana-developers/helpers'
-import {Cluster, Connection, Keypair, clusterApiUrl} from '@solana/web3.js'
+import {initializeKeypair, makeKeypairs} from '@solana-developers/helpers'
+import {Cluster, Connection, clusterApiUrl} from '@solana/web3.js'
 import dotenv from 'dotenv'
 import {createGroup} from './create-group'
 import {TokenMetadata} from '@solana/spl-token-metadata'
@@ -21,7 +21,7 @@ const payer = await initializeKeypair(connection, {
 const decimals = 0
 const maxMembers = 3
 
-const collectionMintKeypair = Keypair.generate()
+const [collectionMintKeypair] = makeKeypairs(1)
 
 const collectionMetadata = {
 	imagePath: 'src/assets/collection.jpeg',
