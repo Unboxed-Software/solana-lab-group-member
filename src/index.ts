@@ -1,9 +1,9 @@
-import {initializeKeypair, makeKeypairs} from "@solana-developers/helpers"
-import {Cluster, Connection, clusterApiUrl} from "@solana/web3.js"
+import { initializeKeypair, makeKeypairs } from "@solana-developers/helpers"
+import { Cluster, Connection, clusterApiUrl } from "@solana/web3.js"
 import dotenv from "dotenv"
-import {createGroup} from "./create-group"
-import {TokenMetadata} from "@solana/spl-token-metadata"
-import {uploadOffChainMetadata} from "./helpers"
+// import { createGroup } from "./create-group" // We'll uncomment this later
+// import { uploadOffChainMetadata } from "./helpers" // We'll uncomment this later
+import { TokenMetadata } from "@solana/spl-token-metadata"
 dotenv.config()
 
 const CLUSTER: Cluster = "devnet"
@@ -14,52 +14,20 @@ const CLUSTER: Cluster = "devnet"
  */
 const connection = new Connection(clusterApiUrl(CLUSTER))
 
-const payer = await initializeKeypair(connection, {
-	keypairPath: "path-to-solana-keypair",
-})
+const payer = await initializeKeypair(connection)
 
 const decimals = 0
 const maxMembers = 3
 
 const [collectionMintKeypair] = makeKeypairs(1)
 
-const collectionMetadata = {
-	imagePath: "src/assets/collection.jpeg",
-	tokenName: "cool-cats-collection",
-	tokenDescription: "Collection of Cool Cat NFTs",
-	tokenSymbol: "MEOWs",
-	tokenExternalUrl: "https://solana.com/",
-	tokenAdditionalMetadata: undefined,
-	tokenUri: "",
-	metadataFileName: "collection.json",
-}
+// CREATE COLLECTION METADATA
 
-collectionMetadata.tokenUri = await uploadOffChainMetadata(
-	collectionMetadata,
-	payer
-)
+// UPLOAD OFF-CHAIN METADATA
 
-const collectionTokenMetadata: TokenMetadata = {
-	name: collectionMetadata.tokenName,
-	mint: collectionMintKeypair.publicKey,
-	symbol: collectionMetadata.tokenSymbol,
-	uri: collectionMetadata.tokenUri,
-	updateAuthority: payer.publicKey,
-	additionalMetadata: Object.entries(
-		collectionMetadata.tokenAdditionalMetadata || []
-	).map(([trait_type, value]) => [trait_type, value]),
-}
+// FORMAT TOKEN METADATA
 
-const signature = await createGroup(
-	connection,
-	payer,
-	collectionMintKeypair,
-	decimals,
-	maxMembers,
-	collectionTokenMetadata
-)
-
-console.log(`Created collection mint with metadata. Signature: ${signature}`)
+// CREATE GROUP
 
 // DEFINE MEMBER METADATA
 
