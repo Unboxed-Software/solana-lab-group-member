@@ -1,10 +1,11 @@
 import { getExplorerLink, initializeKeypair, makeKeypairs } from "@solana-developers/helpers"
-import { Connection } from "@solana/web3.js"
+import { Connection, Keypair } from "@solana/web3.js"
 import dotenv from "dotenv"
 import { TokenMetadata } from "@solana/spl-token-metadata"
 import { LabNFTMetadata, uploadOffChainMetadata } from "./helpers"
 import { createTokenGroup } from "./create-group"
 import { getGroupMemberPointerState, getGroupPointerState, getMetadataPointerState, getMint, getTokenGroupMemberState, getTokenMetadata, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token"
+import { createTokenMember } from "./create-member"
 dotenv.config()
 
 const connection = new Connection("http://127.0.0.1:8899")
@@ -117,15 +118,16 @@ for (const member of membersMetadata) {
 }
 
 // FORMAT MEMBER TOKEN METADATA
-const memberTokenMetadata: TokenMetadata[] = membersMetadata.map(member => ({
-	name: member.tokenName,
-	mint: member.mint.publicKey,
-	symbol: member.tokenSymbol,
-	uri: member.tokenUri as string,
-	updateAuthority: payer.publicKey,
-	additionalMetadata: Object.entries(
-		member.tokenAdditionalMetadata || []
-	).map(([trait_type, value]) => [trait_type, value]),
+const memberTokenMetadata: {mintKeypair: Keypair, metadata: TokenMetadata}[] = membersMetadata.map(member => ({
+    mintKeypair: member.mint,
+    metadata: {
+        name: member.tokenName,
+        mint: member.mint.publicKey,
+        symbol: member.tokenSymbol,
+        uri: member.tokenUri,
+        updateAuthority: payer.publicKey,
+        additionalMetadata: Object.entries(member.tokenAdditionalMetadata || []).map(([trait_type, value]) => [trait_type, value]),
+    } as TokenMetadata
 }))
 
 // CREATE MEMBER MINTS
@@ -134,17 +136,17 @@ for (const memberMetadata of memberTokenMetadata) {
 	const signature = await createTokenMember(
 		connection,
 		payer,
-		member.mint,
+		memberMetadata.mintKeypair,
 		decimals,
-		memberMetadata,
+		memberMetadata.metadata,
 		groupMintKeypair.publicKey
 	)
 
-	console.log(`Created ${member.tokenName} NFT:\n${getExplorerLink("tx", signature, 'localnet')}\n`)
+	console.log(`Created ${memberMetadata.metadata.name} NFT:\n${getExplorerLink("tx", signature, 'localnet')}\n`)
 
 }
 
-// FETCH THE GROUP AND MEMBERS
+// FETCH THE MEMBERS
 for (const member of membersMetadata) {
 	const memberMint = await getMint(connection, member.mint.publicKey, "confirmed", TOKEN_2022_PROGRAM_ID);
 	const memberMetadata = await getTokenMetadata(connection, member.mint.publicKey);
