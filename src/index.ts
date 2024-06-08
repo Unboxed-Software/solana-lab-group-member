@@ -1,5 +1,5 @@
-// import { createGroup } from "./create-group" // We'll uncomment this later
-// import { createMember } from "./create-member" // We'll uncomment this later
+// import { createTokenGroup } from "./create-group"// We'll uncomment this later
+// import { createTokenMember } from "./create-member" // We'll uncomment this later
 import { getExplorerLink, initializeKeypair, makeKeypairs } from "@solana-developers/helpers"
 import { Connection } from "@solana/web3.js"
 import dotenv from "dotenv"
