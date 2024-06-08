@@ -29,3 +29,4 @@ const [collectionMintKeypair] = makeKeypairs(1)
 
 // (Member Lesson) UPLOAD MEMBER METADATA AND CREATE MEMBER MINT
 
+// (Member Lesson) FETCH THE GROUP AND MEMBERS
