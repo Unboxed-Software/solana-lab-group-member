@@ -14,7 +14,7 @@ const payer = await initializeKeypair(connection)
 const decimals = 0
 const maxMembers = 3
 
-const [groupMintKeypair] = makeKeypairs(1)
+const [groupMintKeypair, cat0Mint, cat1Mint, cat2Mint] = makeKeypairs(1)
 
 // CREATE GROUP METADATA
 const groupMetadata: LabNFTMetadata = {
@@ -75,8 +75,6 @@ console.log("Uri: ", fetchedGroupMetadata?.uri);
 console.log("\n------------------------------------\n");
 
 // DEFINE MEMBER METADATA
-const [cat0Mint, cat1Mint, cat2Mint] = makeKeypairs(3);
-
 const membersMetadata: LabNFTMetadata[] = [
 	{
 		mint: cat0Mint,
