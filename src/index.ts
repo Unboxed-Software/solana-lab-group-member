@@ -35,4 +35,4 @@ const [groupMintKeypair, cat0Mint, cat1Mint, cat2Mint] = makeKeypairs(4);
 
 // CREATE MEMBER MINTS
 
-// FETCH THE GROUP AND MEMBERS
+// FETCH THE MEMBERS
