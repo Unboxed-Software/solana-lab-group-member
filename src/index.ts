@@ -1,8 +1,6 @@
 import { initializeKeypair, makeKeypairs } from "@solana-developers/helpers"
 import { Connection } from "@solana/web3.js"
 import dotenv from "dotenv"
-// import { createGroup } from "./create-group" // We'll uncomment this later
-// import { uploadOffChainMetadata } from "./helpers" // We'll uncomment this later
 import { TokenMetadata } from "@solana/spl-token-metadata"
 import { LabNFTMetadata, uploadOffChainMetadata } from "./helpers"
 dotenv.config()
