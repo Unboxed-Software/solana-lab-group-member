@@ -1,8 +1,10 @@
-import { initializeKeypair, makeKeypairs } from "@solana-developers/helpers"
+import { getExplorerLink, initializeKeypair, makeKeypairs } from "@solana-developers/helpers"
 import { Connection } from "@solana/web3.js"
 import dotenv from "dotenv"
 import { TokenMetadata } from "@solana/spl-token-metadata"
 import { LabNFTMetadata, uploadOffChainMetadata } from "./helpers"
+import { createTokenGroup } from "./create-group"
+import { getGroupPointerState, getMetadataPointerState, getMint, getTokenMetadata, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token"
 dotenv.config()
 
 const connection = new Connection("http://127.0.0.1:8899")
@@ -45,6 +47,32 @@ const collectionTokenMetadata: TokenMetadata = {
 }
 
 // (Group Lesson) CREATE GROUP
+const signature = await createTokenGroup(
+	connection,
+	payer,
+	collectionMintKeypair,
+	decimals,
+	maxMembers,
+	collectionTokenMetadata
+)
+
+console.log(`Created collection mint with metadata:\n${getExplorerLink("tx", signature, 'localnet')}\n`)
+
+// (Group Lesson) FETCH THE GROUP
+const groupMint = await getMint(connection, collectionMintKeypair.publicKey, "confirmed", TOKEN_2022_PROGRAM_ID);
+const groupMetadata = await getTokenMetadata(connection, collectionMintKeypair.publicKey);
+const metadataPointerState = getMetadataPointerState(groupMint);
+const groupData = getGroupPointerState(groupMint);
+
+console.log("\n---------- GROUP DATA -------------\n");
+console.log("Group Mint: ", groupMint.address.toBase58());
+console.log("Metadata Pointer Account: ", metadataPointerState?.metadataAddress?.toBase58());
+console.log("Group Pointer Account: ", groupData?.groupAddress?.toBase58());
+console.log("\n--- METADATA ---\n");
+console.log("Name: ", groupMetadata?.name);
+console.log("Symbol: ", groupMetadata?.symbol);
+console.log("Uri: ", groupMetadata?.uri);
+console.log("\n------------------------------------\n");
 
 // (Member Lesson) DEFINE MEMBER METADATA
 
