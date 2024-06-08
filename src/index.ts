@@ -16,7 +16,7 @@ const maxMembers = 3
 
 const [collectionMintKeypair] = makeKeypairs(1)
 
-// (Group Lesson) CREATE COLLECTION METADATA
+// CREATE COLLECTION METADATA
 const collectionMetadata: LabNFTMetadata = {
 	mint: collectionMintKeypair,
 	imagePath: "assets/collection.png",
@@ -28,13 +28,13 @@ const collectionMetadata: LabNFTMetadata = {
 	tokenUri: "",
 }
 
-// (Group Lesson) UPLOAD OFF-CHAIN METADATA
+// UPLOAD OFF-CHAIN METADATA
 collectionMetadata.tokenUri = await uploadOffChainMetadata(
 	payer,
 	collectionMetadata
 )
 
-// (Group Lesson) FORMAT TOKEN METADATA
+// FORMAT TOKEN METADATA
 const collectionTokenMetadata: TokenMetadata = {
 	name: collectionMetadata.tokenName,
 	mint: collectionMintKeypair.publicKey,
@@ -46,7 +46,7 @@ const collectionTokenMetadata: TokenMetadata = {
 	).map(([trait_type, value]) => [trait_type, value]),
 }
 
-// (Group Lesson) CREATE GROUP
+// CREATE GROUP
 const signature = await createTokenGroup(
 	connection,
 	payer,
@@ -58,7 +58,7 @@ const signature = await createTokenGroup(
 
 console.log(`Created collection mint with metadata:\n${getExplorerLink("tx", signature, 'localnet')}\n`)
 
-// (Group Lesson) FETCH THE GROUP
+// FETCH THE GROUP
 const groupMint = await getMint(connection, collectionMintKeypair.publicKey, "confirmed", TOKEN_2022_PROGRAM_ID);
 const groupMetadata = await getTokenMetadata(connection, collectionMintKeypair.publicKey);
 const metadataPointerState = getMetadataPointerState(groupMint);
@@ -74,10 +74,10 @@ console.log("Symbol: ", groupMetadata?.symbol);
 console.log("Uri: ", groupMetadata?.uri);
 console.log("\n------------------------------------\n");
 
-// (Member Lesson) DEFINE MEMBER METADATA
+// DEFINE MEMBER METADATA
 
-// (Member Lesson) UPLOAD MEMBER METADATA AND CREATE MEMBER MINT
+// UPLOAD MEMBER METADATA AND CREATE MEMBER MINT
 
-// (Member Lesson) FETCH THE GROUP AND MEMBERS
+// FETCH THE GROUP AND MEMBERS
 
 
