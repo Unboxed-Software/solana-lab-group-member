@@ -15,7 +15,7 @@ const payer = await initializeKeypair(connection)
 const decimals = 0
 const maxMembers = 3
 
-const [groupMintKeypair] = makeKeypairs(1)
+const [groupMintKeypair, cat0Mint, cat1Mint, cat2Mint] = makeKeypairs(4);
 
 // CREATE GROUP METADATA
 
