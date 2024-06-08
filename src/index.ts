@@ -4,7 +4,7 @@ import dotenv from "dotenv"
 import { TokenMetadata } from "@solana/spl-token-metadata"
 import { LabNFTMetadata, uploadOffChainMetadata } from "./helpers"
 import { createTokenGroup } from "./create-group"
-import { getGroupPointerState, getMetadataPointerState, getMint, getTokenMetadata, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token"
+import { getGroupMemberPointerState, getGroupPointerState, getMetadataPointerState, getMint, getTokenGroupMemberState, getTokenMetadata, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token"
 dotenv.config()
 
 const connection = new Connection("http://127.0.0.1:8899")
@@ -14,11 +14,11 @@ const payer = await initializeKeypair(connection)
 const decimals = 0
 const maxMembers = 3
 
-const [collectionMintKeypair] = makeKeypairs(1)
+const [groupMintKeypair] = makeKeypairs(1)
 
-// CREATE COLLECTION METADATA
-const collectionMetadata: LabNFTMetadata = {
-	mint: collectionMintKeypair,
+// CREATE GROUP METADATA
+const groupMetadata: LabNFTMetadata = {
+	mint: groupMintKeypair,
 	imagePath: "assets/collection.png",
 	tokenName: "cool-cats-collection",
 	tokenDescription: "Collection of Cool Cat NFTs",
@@ -29,20 +29,20 @@ const collectionMetadata: LabNFTMetadata = {
 }
 
 // UPLOAD OFF-CHAIN METADATA
-collectionMetadata.tokenUri = await uploadOffChainMetadata(
+groupMetadata.tokenUri = await uploadOffChainMetadata(
 	payer,
-	collectionMetadata
+	groupMetadata
 )
 
-// FORMAT TOKEN METADATA
+// FORMAT GROUP TOKEN METADATA
 const collectionTokenMetadata: TokenMetadata = {
-	name: collectionMetadata.tokenName,
-	mint: collectionMintKeypair.publicKey,
-	symbol: collectionMetadata.tokenSymbol,
-	uri: collectionMetadata.tokenUri,
+	name: groupMetadata.tokenName,
+	mint: groupMintKeypair.publicKey,
+	symbol: groupMetadata.tokenSymbol,
+	uri: groupMetadata.tokenUri,
 	updateAuthority: payer.publicKey,
 	additionalMetadata: Object.entries(
-		collectionMetadata.tokenAdditionalMetadata || []
+		groupMetadata.tokenAdditionalMetadata || []
 	).map(([trait_type, value]) => [trait_type, value]),
 }
 
@@ -50,7 +50,7 @@ const collectionTokenMetadata: TokenMetadata = {
 const signature = await createTokenGroup(
 	connection,
 	payer,
-	collectionMintKeypair,
+	groupMintKeypair,
 	decimals,
 	maxMembers,
 	collectionTokenMetadata
@@ -59,8 +59,8 @@ const signature = await createTokenGroup(
 console.log(`Created collection mint with metadata:\n${getExplorerLink("tx", signature, 'localnet')}\n`)
 
 // FETCH THE GROUP
-const groupMint = await getMint(connection, collectionMintKeypair.publicKey, "confirmed", TOKEN_2022_PROGRAM_ID);
-const groupMetadata = await getTokenMetadata(connection, collectionMintKeypair.publicKey);
+const groupMint = await getMint(connection, groupMintKeypair.publicKey, "confirmed", TOKEN_2022_PROGRAM_ID);
+const fetchedGroupMetadata = await getTokenMetadata(connection, groupMintKeypair.publicKey);
 const metadataPointerState = getMetadataPointerState(groupMint);
 const groupData = getGroupPointerState(groupMint);
 
@@ -69,15 +69,102 @@ console.log("Group Mint: ", groupMint.address.toBase58());
 console.log("Metadata Pointer Account: ", metadataPointerState?.metadataAddress?.toBase58());
 console.log("Group Pointer Account: ", groupData?.groupAddress?.toBase58());
 console.log("\n--- METADATA ---\n");
-console.log("Name: ", groupMetadata?.name);
-console.log("Symbol: ", groupMetadata?.symbol);
-console.log("Uri: ", groupMetadata?.uri);
+console.log("Name: ", fetchedGroupMetadata?.name);
+console.log("Symbol: ", fetchedGroupMetadata?.symbol);
+console.log("Uri: ", fetchedGroupMetadata?.uri);
 console.log("\n------------------------------------\n");
 
 // DEFINE MEMBER METADATA
+const [cat0Mint, cat1Mint, cat2Mint] = makeKeypairs(3);
 
-// UPLOAD MEMBER METADATA AND CREATE MEMBER MINT
+const membersMetadata: LabNFTMetadata[] = [
+	{
+		mint: cat0Mint,
+		imagePath: "assets/cat_0.png",
+		tokenName: "Cat 1",
+		tokenDescription: "Adorable cat",
+		tokenSymbol: "MEOW",
+		tokenExternalUrl: "https://solana.com/",
+		tokenAdditionalMetadata: {},
+		tokenUri: "",
+	},
+	{
+		mint: cat1Mint,
+		imagePath: "assets/cat_1.png",
+		tokenName: "Cat 2",
+		tokenDescription: "Sassy cat",
+		tokenSymbol: "MEOW",
+		tokenExternalUrl: "https://solana.com/",
+		tokenAdditionalMetadata: {},
+		tokenUri: "",
+	},
+	{
+		mint: cat2Mint,
+		imagePath: "assets/cat_2.png",
+		tokenName: "Cat 3",
+		tokenDescription: "Silly cat",
+		tokenSymbol: "MEOW",
+		tokenExternalUrl: "https://solana.com/",
+		tokenAdditionalMetadata: {},
+		tokenUri: "",
+	},
+]
+
+// UPLOAD MEMBER METADATA
+for (const member of membersMetadata) {
+	member.tokenUri = await uploadOffChainMetadata(
+		payer,
+		member
+	)
+}
+
+// FORMAT MEMBER TOKEN METADATA
+const memberTokenMetadata: TokenMetadata[] = membersMetadata.map(member => ({
+	name: member.tokenName,
+	mint: member.mint.publicKey,
+	symbol: member.tokenSymbol,
+	uri: member.tokenUri as string,
+	updateAuthority: payer.publicKey,
+	additionalMetadata: Object.entries(
+		member.tokenAdditionalMetadata || []
+	).map(([trait_type, value]) => [trait_type, value]),
+}))
+
+// CREATE MEMBER MINTS
+for (const memberMetadata of memberTokenMetadata) {
+
+	const signature = await createTokenMember(
+		connection,
+		payer,
+		member.mint,
+		decimals,
+		memberMetadata,
+		groupMintKeypair.publicKey
+	)
+
+	console.log(`Created ${member.tokenName} NFT:\n${getExplorerLink("tx", signature, 'localnet')}\n`)
+
+}
 
 // FETCH THE GROUP AND MEMBERS
+for (const member of membersMetadata) {
+	const memberMint = await getMint(connection, member.mint.publicKey, "confirmed", TOKEN_2022_PROGRAM_ID);
+	const memberMetadata = await getTokenMetadata(connection, member.mint.publicKey);
+	const metadataPointerState = getMetadataPointerState(memberMint);
+	const memberPointerData = getGroupMemberPointerState(memberMint);
+	const memberData = getTokenGroupMemberState(memberMint);
 
+	console.log("\n---------- MEMBER DATA -------------\n");
+	console.log("Member Mint: ", memberMint.address.toBase58());
+	console.log("Metadata Pointer Account: ", metadataPointerState?.metadataAddress?.toBase58());
+	console.log("Group Account: ", memberData?.group?.toBase58());
+	console.log("Member Pointer Account: ", memberPointerData?.memberAddress?.toBase58());
+	console.log("Member Number: ", memberData?.memberNumber);
+	console.log("\n--- METADATA ---\n");
+	console.log("Name: ", memberMetadata?.name);
+	console.log("Symbol: ", memberMetadata?.symbol);
+	console.log("Uri: ", memberMetadata?.uri);
+	console.log("\n------------------------------------\n");
+	
+}
 
